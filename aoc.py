@@ -15,15 +15,14 @@ class textfile():
             f.close()
 
         self.raw = open(self.name).read()
-    
-    def lines(self, processor = None):
+
+    def lines(self, processor=None):
         if processor:
             return [processor(x) for x in self.raw.splitlines()]
 
         return self.raw.splitlines()
-    
-    def split(self, processor = None, regex = None):
-        data = None
+
+    def split(self, processor=None, regex=None):
         if regex:
             from re import split
             data = split(regex, self.raw)
@@ -35,13 +34,13 @@ class textfile():
 
         return data
 
-    def splitted_lines(self, processor = None, regex = None):
-        splitter = None
+    def splitted_lines(self, processor=None, regex=None):
         if regex:
             from re import split
-            splitter = lambda x: split(regex, x)
+
+            def splitter(x): return split(regex, x)
         else:
-            splitter = lambda x: x.split()
+            def splitter(x): return x.split()
 
         if processor:
             return [[processor(x) for x in splitter(line)] for line in self.lines()]
