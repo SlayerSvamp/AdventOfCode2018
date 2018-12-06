@@ -1,23 +1,13 @@
 import aoc
 
-
-def occurs(string):
-    return set(string.count(c) for c in set(string))
-
-
-occ = aoc.lines(occurs)
-twos = sum(2 in x for x in occ)
-threes = sum(3 in x for x in occ)
+occurs = aoc.lines(lambda x: set(x.count(c) for c in set(x)))
+twos = sum(2 in x for x in occurs)
+threes = sum(3 in x for x in occurs)
 
 lines = aoc.lines()
-id_count = len(lines)
-id_length = len(lines[0])
-
-for i in range(id_length):
-    compares = [x[:i] + x[i+1:] for x in lines]
-    if len(set(compares)) < id_count:
-        z = zip(sorted(compares), sorted(set(compares)))
-        common = next(c for c, x in z if x != c)
+combos = [(a, b) for a in lines for b in lines if a != b]
+alike = max(combos, key=lambda combo: sum(a == b for a, b in zip(*combo)))
+common = ''.join(a for a, b in zip(*alike) if a == b)
 
 print('Part One:', twos * threes)
 print('Part Two:', common)
