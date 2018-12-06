@@ -1,14 +1,13 @@
 import aoc
 
 current = None
-state = None
 fell_asleep = None
 guards = {}
 
 records = aoc.splitted_lines(lambda x: x.strip('[]#'))
 sorted_records = sorted(records, key=lambda x: ' '.join(x[:2]))
 
-for date, time, event, guard, *_ in sorted_records:
+for _, time, event, guard, *_ in sorted_records:
     if event == 'Guard':
         current = int(guard)
         if current not in guards:

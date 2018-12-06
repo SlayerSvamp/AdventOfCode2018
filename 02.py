@@ -2,7 +2,7 @@ import aoc
 
 
 def occurs(string):
-    return set(sum(c == x for x in string) for c in set(string))
+    return set(string.count(c) for c in set(string))
 
 
 occ = aoc.lines(occurs)
