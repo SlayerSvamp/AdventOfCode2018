@@ -1,38 +1,36 @@
 import aoc
+INITIAL = '##.#.#.##..#....######..#..#...#.#..#.#.#..###.#.#.#..#..###.##.#..#.##.##.#.####..##...##..#..##.#.'
+RULES = dict(aoc.lines(lambda x: x.split()[::2]))
 
 
-def parse_rule(line):
-    pattern, _, result = line.split()
-    return (pattern, result)
-
-
-def next_gen(rules, this_gen, offset):
-    while not this_gen.startswith('...'):
+def calc_next_gen(current, offset):
+    while not current.startswith('....'):
         offset -= 1
-        this_gen = '.' + this_gen
-    while not this_gen.endswith('...'):
-        this_gen += '.'
-    ret = '..'
-    for i in range(2, len(this_gen) - 2):
-        pattern = this_gen[i-2:i+3] 
-        ret += rules.get(pattern, '.')
+        current = '.' + current
+    while not current.endswith('....'):
+        current += '.'
+    next_gen = '..'
+    for i in range(2, len(current) - 2):
+        next_gen += RULES[current[i-2:i+3]]
 
-    return (ret, offset)
-
-def calc_gen(rules, this_gen, gens, offset=0):
-    for gen in range(gens):
-        if not gen % 1000:
-            print('Currently at gen', gen, end='\r')
-        this_gen, offset = next_gen(rules, this_gen, offset)
-    return (this_gen, offset)
-
-this_gen = '##.#.#.##..#....######..#..#...#.#..#.#.#..###.#.#.#..#..###.##.#..#.##.##.#.####..##...##..#..##.#.'
-rules = dict(aoc.lines(parse_rule))
+    return (next_gen, offset)
 
 
+def calc_sum_pots(num_gens):
+    current = INITIAL
+    old_len = diff = left = offset = 0
+    for gen in range(num_gens):
+        current, offset = calc_next_gen(current, offset)
+        curr_len = sum(i + offset for i, x in enumerate(current) if x == '#')
+        if diff == curr_len - old_len:
+            left = num_gens - gen - 1
+            left *= diff
+            break
+        diff = curr_len - old_len
+        old_len = curr_len
 
-gen, offset = calc_gen(rules, this_gen, 20)
-print('Part One:', sum(i+offset for i,x in enumerate(gen) if x == '#'), '                   ')
+    return curr_len + left
 
-gen, offset = calc_gen(rules, this_gen, 50_000_000_000)
-print('Part Two:', sum(i+offset for i,x in enumerate(gen) if x == '#'),  '                   ')
+
+print('Part One:', calc_sum_pots(20))
+print('Part Two:', calc_sum_pots(50_000_000_000))
