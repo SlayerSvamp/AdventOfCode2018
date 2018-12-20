@@ -1,7 +1,7 @@
 class textfile():
     def __init__(self):
         import __main__
-        pyfile = __main__.__file__
+        pyfile = __main__.__file__.replace('\\', '/')
         x = next(i for i in range(len(pyfile) - 1, 0, -1) if pyfile[i] == '/')
         datadir = pyfile[:x] + '/data'
         self.name = datadir + pyfile[x:-3] + '.txt'
