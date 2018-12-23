@@ -1,43 +1,69 @@
 import aoc
 
-dimensions = {'min-y': 0, 'min-x': 0, 'y': 0, 'x': 0}
-ranges = []
-for line in aoc.lines():
-    pos, span = line.split(', ')
-    static_key, static_value = pos.split('=')
-    static_value = int(static_value)
-    range_key, range_values = span.split('=')
-    range_tuple = tuple(int(x) for x in range_values.split('..'))
+grid = dict()
 
-    ranges.append(((static_key, static_value), (range_key, range_tuple)))
+for static_key, static_value, _, range_from, range_to in aoc.splitted_lines(regex=', |=|[.]{2}'):
+    for range_value in range(int(range_from), int(range_to) + 1):
+        pos = (int(static_value), range_value)
+        if static_key == 'y':
+            pos = pos[::-1]
+        grid[pos] = '#'
 
-    if static_value < dimensions['min-' + static_key]:
-        dimensions['min-' + static_key] = static_value
 
-    if range_tuple[1] < dimensions['min-' + range_key]:
-        dimensions['min-' + range_key] = range_tuple[1]
+min_y, *_, max_y = sorted(y for (_, y), c in grid.items() if c == '#')
 
-    if static_value > dimensions[static_key]:
-        dimensions[static_key] = static_value
 
-    if range_tuple[1] > dimensions[range_key]:
-        dimensions[range_key] = range_tuple[1]
+def from_grid(x, y):
+    return grid.get((x, y), '.')
 
-grid = dict(((x, y), '.') for y in range(dimensions['min-y'], dimensions['y'] + 1) for x in range(dimensions['min-x'],dimensions['x'] + 1))
 
-def get_range(z):
-    if isinstance(z, tuple):
-        return range(*z)
-    return range(z, z + 1)
+def has_support(x, y):
+    def inner(direction, x, y):
+        while from_grid(x, y) != '#':
+            if from_grid(x, y + 1) in '|.':
+                return False
+            x += direction
+        return True
+    return inner(-1, x-1, y) and inner(1, x, y)
 
-for (k1, v1), (k2, v2) in ranges:
-    dims = {k1 : get_range(v1), k2 : get_range(v2)}
-    for y in dims['y']:
-        for x in dims['x']:
-            grid[x,y] = '#'
 
-for y in range(dimensions['min-y'], dimensions['y'] + 1):
-    row = ''
-    for x in range(dimensions['min-x'],dimensions['x'] + 1):
-        row += grid[x,y]
-    print(row)
+def fill(x, y):
+    def inner(direction, x, y):
+        while from_grid(x, y) != '#':
+            grid[x, y] = '~'
+            x += direction
+    inner(-1, x-1, y)
+    inner(1, x, y)
+
+
+def flow(x, y):
+    def inner(direction, x, y):
+        while from_grid(x, y) != '#':
+            grid[x, y] = '|'
+            if from_grid(x, y+1) in '.|':
+                yield (x, y)
+                break
+            x += direction
+    return [*inner(-1, x, y), *inner(1, x, y)]
+
+
+def pour(x, y):
+    while from_grid(x, y + 1) == '.':
+        y += 1
+        grid[x, y] = '|'
+        if y+1 > max_y:
+            break
+    else:
+        if from_grid(x, y+1) == '|':
+            return
+        while has_support(x, y):
+            fill(x, y)
+            y -= 1
+        for x, y in flow(x, y):
+            pour(x, y)
+
+
+spring = (500, 0)
+pour(*spring)
+print('Part One:', sum(c in '~|' for (_, y), c in grid.items() if y >= min_y))
+print('Part Two:', sum(c == '~' for (_, y), c in grid.items() if y >= min_y))
